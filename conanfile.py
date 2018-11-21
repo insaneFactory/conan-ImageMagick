@@ -125,7 +125,7 @@ class ImageMagickConan(ConanFile):
 	def requirements(self):
 		if self.settings.os == "Windows" or self.options.bzlib:
 			self.requires("bzip2/1.0.6@conan/stable")
-		if self.settings.os == "Windows" or self.options.glib:
+		if self.settings.os == "Windows": # or self.options.glib:
 			self.requires("glib/2.58.1@insanefactory/stable")
 		if self.settings.os == "Windows" or self.options.lcms:
 			self.requires("lcms/2.9@bincrafters/stable")
