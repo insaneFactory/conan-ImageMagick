@@ -9,7 +9,7 @@ class ImageMagickConan(ConanFile):
 	description = "ImageMagick® is a software suite to create, edit, compose, or convert bitmap images. It can read and write images in a variety of formats (over 200) including PNG, JPEG, GIF, HEIC, TIFF, DPX, EXR, WebP, Postscript, PDF, and SVG. Use ImageMagick to resize, flip, mirror, rotate, distort, shear and transform images, adjust image colors, apply various special effects, or draw text, lines, polygons, ellipses and Bézier curves."
 	requires = ()
 	settings = "os", "compiler", "build_type", "arch"
-	exports = "CMakeLists.txt", "magick-baseconfig.h.in"
+	exports_sources = "CMakeLists.txt", "magick-baseconfig.h.in"
 	generators = "cmake"
 	source_subfolder = "src"
 	options = {
@@ -125,7 +125,7 @@ class ImageMagickConan(ConanFile):
 	def requirements(self):
 		if self.settings.os == "Windows" or self.options.bzlib:
 			self.requires("bzip2/1.0.6@conan/stable")
-		if self.settings.os == "Windows" or self.options.glib:
+		if self.settings.os == "Windows": # or self.options.glib:
 			self.requires("glib/2.58.1@insanefactory/stable")
 		if self.settings.os == "Windows" or self.options.lcms:
 			self.requires("lcms/2.9@bincrafters/stable")
@@ -201,8 +201,8 @@ class ImageMagickConan(ConanFile):
 			cmake.configure(source_folder=self.source_subfolder)
 			cmake.build()
 		else:
-			autotools = AutoToolsBuildEnvironment(self)
-			with tools.chdir(builddir):
+			tools.mkdir("build")
+			with tools.chdir("build"):
 				args = [
 					"--enable-shared=%s" % ("yes" if self.options.shared else "no"),
 					"--enable-static=%s" % ("no" if self.options.shared else "yes"),
@@ -250,7 +250,8 @@ class ImageMagickConan(ConanFile):
 					"--with-tiff=%s" % ("yes" if self.options.tiff else "no")
 				]
 				
-				autotools.configure(configure_dir=self.source_subfolder, args=args)
+				autotools = AutoToolsBuildEnvironment(self)
+				autotools.configure(configure_dir=os.path.join(self.build_folder, self.source_subfolder), args=args)
 				autotools.make()
 				autotools.install()
 
