@@ -201,8 +201,8 @@ class ImageMagickConan(ConanFile):
 			cmake.configure(source_folder=self.source_subfolder)
 			cmake.build()
 		else:
-			autotools = AutoToolsBuildEnvironment(self)
-			with tools.chdir(builddir):
+			tools.mkdir("build")
+			with tools.chdir("build"):
 				args = [
 					"--enable-shared=%s" % ("yes" if self.options.shared else "no"),
 					"--enable-static=%s" % ("no" if self.options.shared else "yes"),
@@ -250,7 +250,8 @@ class ImageMagickConan(ConanFile):
 					"--with-tiff=%s" % ("yes" if self.options.tiff else "no")
 				]
 				
-				autotools.configure(configure_dir=self.source_subfolder, args=args)
+				autotools = AutoToolsBuildEnvironment(self)
+				autotools.configure(configure_dir=os.path.join(self.build_folder, self.source_subfolder), args=args)
 				autotools.make()
 				autotools.install()
 
