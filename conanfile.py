@@ -9,7 +9,7 @@ class ImageMagickConan(ConanFile):
 	description = "ImageMagick® is a software suite to create, edit, compose, or convert bitmap images. It can read and write images in a variety of formats (over 200) including PNG, JPEG, GIF, HEIC, TIFF, DPX, EXR, WebP, Postscript, PDF, and SVG. Use ImageMagick to resize, flip, mirror, rotate, distort, shear and transform images, adjust image colors, apply various special effects, or draw text, lines, polygons, ellipses and Bézier curves."
 	requires = ()
 	settings = "os", "compiler", "build_type", "arch"
-	exports = "CMakeLists.txt", "magick-baseconfig.h.in"
+	exports_sources = "CMakeLists.txt", "magick-baseconfig.h.in"
 	generators = "cmake"
 	source_subfolder = "src"
 	options = {
