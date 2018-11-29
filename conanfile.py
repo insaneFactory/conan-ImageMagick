@@ -10,7 +10,7 @@ class ImageMagickConan(ConanFile):
 	requires = ()
 	settings = "os", "compiler", "build_type", "arch"
 	exports_sources = "CMakeLists.txt", "magick-baseconfig.h.in"
-	generators = "cmake"
+	generators = "cmake", "pkg_config"
 	source_subfolder = "src"
 	options = {
 		"shared": [True, False],
@@ -120,8 +120,13 @@ class ImageMagickConan(ConanFile):
 			del self.options.jemalloc
 			del self.options.umem
 			del self.options.autotrace
-	
-	
+
+
+	def build_requirements(self):
+		if self.settings.os == "Windows":
+			self.build_requires("cmake_installer/3.12.1@conan/stable")
+
+
 	def requirements(self):
 		if self.settings.os == "Windows" or self.options.bzlib:
 			self.requires("bzip2/1.0.6@conan/stable")
@@ -146,114 +151,129 @@ class ImageMagickConan(ConanFile):
 			self.requires("lzma/5.2.4@bincrafters/stable")
 		if self.options.tiff:
 			self.requires("libtiff/4.0.9@bincrafters/stable")
-		
+
 
 	def source(self):
 		self.run("git clone https://github.com/ImageMagick/ImageMagick.git " + self.source_subfolder)
 		self.run("cd %s && git fetch --all --tags --prune && git checkout tags/%s" % (self.source_subfolder, self.version))
-		shutil.move("CMakeLists.txt", self.source_subfolder + "/CMakeLists.txt")
-		shutil.move("magick-baseconfig.h.in", self.source_subfolder + "/magick-baseconfig.h.in")
 
+		if self.settings.os == "Windows":
+			shutil.move("CMakeLists.txt", self.source_subfolder + "/CMakeLists.txt")
+			shutil.move("magick-baseconfig.h.in", self.source_subfolder + "/magick-baseconfig.h.in")
+
+	
+	def buildCMake(self):
+		cmake = CMake(self)
+		cmake.definitions["shared"] = self.options.shared
+		cmake.definitions["quantum-depth"] = str(getattr(self.options, "quantum-depth"))
+		cmake.definitions["openmp"] = self.options.openmp
+		cmake.definitions["opencl"] = self.options.opencl
+		cmake.definitions["largefile"] = self.options.largefile
+		cmake.definitions["hdri"] = self.options.hdri
+		cmake.definitions["deprecated"] = self.options.deprecated
+		cmake.definitions["cipher"] = self.options.cipher
+		cmake.definitions["zero-configuration"] = getattr(self.options, "zero-configuration")
+		cmake.definitions["docs"] = self.options.docs
+		cmake.definitions["threads"] = self.options.threads
+		cmake.definitions["bzlib"] = self.options.bzlib
+		cmake.definitions["x"] = self.options.x
+		cmake.definitions["dps"] = self.options.dps
+		cmake.definitions["fftw"] = self.options.fftw
+		cmake.definitions["flif"] = self.options.flif
+		cmake.definitions["fpx"] = self.options.fpx
+		cmake.definitions["djvu"] = self.options.djvu
+		cmake.definitions["raqm"] = self.options.raqm
+		cmake.definitions["heic"] = self.options.heic
+		cmake.definitions["jbig"] = self.options.jbig
+		cmake.definitions["lcms"] = self.options.lcms
+		cmake.definitions["lqr"] = self.options.lqr
+		cmake.definitions["openexr"] = self.options.openexr
+		cmake.definitions["pango"] = self.options.pango
+		cmake.definitions["webp"] = self.options.webp
+		cmake.definitions["wmf"] = self.options.wmf
+		cmake.definitions["fontconfig"] = self.options.fontconfig
+		cmake.definitions["freetype"] = self.options.freetype
+		cmake.definitions["openjp2"] = self.options.openjp2
+		cmake.definitions["gslib"] = self.options.gslib
+		cmake.definitions["gvc"] = self.options.gvc
+		cmake.definitions["rsvg"] = self.options.rsvg
+		cmake.definitions["wmf"] = self.options.wmf
+		cmake.definitions["jpeg"] = self.options.jpeg
+		cmake.definitions["png"] = self.options.png
+		cmake.definitions["xml"] = self.options.xml
+		cmake.definitions["zlib"] = self.options.zlib
+		cmake.definitions["lzma"] = self.options.lzma
+		cmake.definitions["tiff"] = self.options.tiff
+		cmake.configure(source_folder=self.source_subfolder)
+		cmake.build()
+		
+		
+	def buildAutoTools(self):
+		tools.mkdir("build")
+		with tools.chdir("build"):
+			args = [
+				"--with-pkgconfigdir=%s" % self.build_folder,
+				"--enable-shared=%s" % ("yes" if self.options.shared else "no"),
+				"--enable-static=%s" % ("no" if self.options.shared else "yes"),
+				"--with-quantum-depth=%s" % str(getattr(self.options, "quantum-depth")),
+				"--enable-openmp=%s" % ("yes" if self.options.openmp else "no"),
+				"--enable-opencl=%s" % ("yes" if self.options.opencl else "no"),
+				"--enable-hdri=%s" % ("yes" if self.options.hdri else "no"),
+				"--enable-deprecated=%s" % ("yes" if self.options.deprecated else "no"),
+				"--enable-cipher=%s" % ("yes" if self.options.cipher else "no"),
+				"--enable-zero-configuration=%s" % ("yes" if getattr(self.options, "zero-configuration") else "no"),
+				"--enable-docs=%s" % ("yes" if self.options.docs else "no"),
+				"--with-threads=%s" % ("yes" if self.options.threads else "no"),
+				"--with-bzlib=%s" % ("yes" if self.options.bzlib else "no"),
+				"--with-x=%s" % ("yes" if self.options.x else "no"),
+				"--with-dps=%s" % ("yes" if self.options.dps else "no"),
+				"--with-fftw=%s" % ("yes" if self.options.fftw else "no"),
+				"--with-flif=%s" % ("yes" if self.options.flif else "no"),
+				"--with-fpx=%s" % ("yes" if self.options.fpx else "no"),
+				"--with-djvu=%s" % ("yes" if self.options.djvu else "no"),
+				"--with-raqm=%s" % ("yes" if self.options.raqm else "no"),
+				"--with-heic=%s" % ("yes" if self.options.heic else "no"),
+				"--with-jbig=%s" % ("yes" if self.options.jbig else "no"),
+				"--with-lcms=%s" % ("yes" if self.options.lcms else "no"),
+				"--with-lqr=%s" % ("yes" if self.options.lqr else "no"),
+				"--with-openexr=%s" % ("yes" if self.options.openexr else "no"),
+				"--with-pango=%s" % ("yes" if self.options.pango else "no"),
+				"--with-webp=%s" % ("yes" if self.options.webp else "no"),
+				"--with-wmf=%s" % ("yes" if self.options.wmf else "no"),
+				"--with-fontconfig=%s" % ("yes" if self.options.fontconfig else "no"),
+				"--with-freetype=%s" % ("yes" if self.options.freetype else "no"),
+				"--with-openjp2=%s" % ("yes" if self.options.openjp2 else "no"),
+				"--with-dmalloc=%s" % ("yes" if self.options.dmalloc else "no"),
+				"--with-jemalloc=%s" % ("yes" if self.options.jemalloc else "no"),
+				"--with-umem=%s" % ("yes" if self.options.umem else "no"),
+				"--with-autotrace=%s" % ("yes" if self.options.autotrace else "no"),
+				"--with-gslib=%s" % ("yes" if self.options.gslib else "no"),
+				"--with-gvc=%s" % ("yes" if self.options.gvc else "no"),
+				"--with-rsvg=%s" % ("yes" if self.options.rsvg else "no"),
+				"--with-wmf=%s" % ("yes" if self.options.wmf else "no"),
+				"--with-jpeg=%s" % ("yes" if self.options.jpeg else "no"),
+				"--with-png=%s" % ("yes" if self.options.png else "no"),
+				"--with-xml=%s" % ("yes" if self.options.xml else "no"),
+				"--with-zlib=%s" % ("yes" if self.options.zlib else "no"),
+				"--with-lzma=%s" % ("yes" if self.options.lzma else "no"),
+				"--with-tiff=%s" % ("yes" if self.options.tiff else "no")
+			]
+			
+			autotools = AutoToolsBuildEnvironment(self)
+			autotools.configure(
+				configure_dir=os.path.join(self.build_folder, self.source_subfolder),
+				args=args
+				#pkg_config_paths=self.build_folder
+			)
+			autotools.make()
+			autotools.install()
+		
 
 	def build(self):
 		if self.settings.os == "Windows":
-			cmake = CMake(self)
-			cmake.definitions["shared"] = self.options.shared
-			cmake.definitions["quantum-depth"] = str(getattr(self.options, "quantum-depth"))
-			cmake.definitions["openmp"] = self.options.openmp
-			cmake.definitions["opencl"] = self.options.opencl
-			cmake.definitions["largefile"] = self.options.largefile
-			cmake.definitions["hdri"] = self.options.hdri
-			cmake.definitions["deprecated"] = self.options.deprecated
-			cmake.definitions["cipher"] = self.options.cipher
-			cmake.definitions["zero-configuration"] = getattr(self.options, "zero-configuration")
-			cmake.definitions["docs"] = self.options.docs
-			cmake.definitions["threads"] = self.options.threads
-			cmake.definitions["bzlib"] = self.options.bzlib
-			cmake.definitions["x"] = self.options.x
-			cmake.definitions["dps"] = self.options.dps
-			cmake.definitions["fftw"] = self.options.fftw
-			cmake.definitions["flif"] = self.options.flif
-			cmake.definitions["fpx"] = self.options.fpx
-			cmake.definitions["djvu"] = self.options.djvu
-			cmake.definitions["raqm"] = self.options.raqm
-			cmake.definitions["heic"] = self.options.heic
-			cmake.definitions["jbig"] = self.options.jbig
-			cmake.definitions["lcms"] = self.options.lcms
-			cmake.definitions["lqr"] = self.options.lqr
-			cmake.definitions["openexr"] = self.options.openexr
-			cmake.definitions["pango"] = self.options.pango
-			cmake.definitions["webp"] = self.options.webp
-			cmake.definitions["wmf"] = self.options.wmf
-			cmake.definitions["fontconfig"] = self.options.fontconfig
-			cmake.definitions["freetype"] = self.options.freetype
-			cmake.definitions["openjp2"] = self.options.openjp2
-			cmake.definitions["gslib"] = self.options.gslib
-			cmake.definitions["gvc"] = self.options.gvc
-			cmake.definitions["rsvg"] = self.options.rsvg
-			cmake.definitions["wmf"] = self.options.wmf
-			cmake.definitions["jpeg"] = self.options.jpeg
-			cmake.definitions["png"] = self.options.png
-			cmake.definitions["xml"] = self.options.xml
-			cmake.definitions["zlib"] = self.options.zlib
-			cmake.definitions["lzma"] = self.options.lzma
-			cmake.definitions["tiff"] = self.options.tiff
-			cmake.configure(source_folder=self.source_subfolder)
-			cmake.build()
+			self.buildCMake()
 		else:
-			tools.mkdir("build")
-			with tools.chdir("build"):
-				args = [
-					"--enable-shared=%s" % ("yes" if self.options.shared else "no"),
-					"--enable-static=%s" % ("no" if self.options.shared else "yes"),
-					"--with-quantum-depth=%s" % str(getattr(self.options, "quantum-depth")),
-					"--enable-openmp=%s" % ("yes" if self.options.openmp else "no"),
-					"--enable-opencl=%s" % ("yes" if self.options.opencl else "no"),
-					"--enable-hdri=%s" % ("yes" if self.options.hdri else "no"),
-					"--enable-deprecated=%s" % ("yes" if self.options.deprecated else "no"),
-					"--enable-cipher=%s" % ("yes" if self.options.cipher else "no"),
-					"--enable-zero-configuration=%s" % ("yes" if getattr(self.options, "zero-configuration") else "no"),
-					"--enable-docs=%s" % ("yes" if self.options.docs else "no"),
-					"--with-threads=%s" % ("yes" if self.options.threads else "no"),
-					"--with-bzlib=%s" % ("yes" if self.options.bzlib else "no"),
-					"--with-x=%s" % ("yes" if self.options.x else "no"),
-					"--with-dps=%s" % ("yes" if self.options.dps else "no"),
-					"--with-fftw=%s" % ("yes" if self.options.fftw else "no"),
-					"--with-flif=%s" % ("yes" if self.options.flif else "no"),
-					"--with-fpx=%s" % ("yes" if self.options.fpx else "no"),
-					"--with-djvu=%s" % ("yes" if self.options.djvu else "no"),
-					"--with-raqm=%s" % ("yes" if self.options.raqm else "no"),
-					"--with-heic=%s" % ("yes" if self.options.heic else "no"),
-					"--with-jbig=%s" % ("yes" if self.options.jbig else "no"),
-					"--with-lcms=%s" % ("yes" if self.options.lcms else "no"),
-					"--with-lqr=%s" % ("yes" if self.options.lqr else "no"),
-					"--with-openexr=%s" % ("yes" if self.options.openexr else "no"),
-					"--with-pango=%s" % ("yes" if self.options.pango else "no"),
-					"--with-webp=%s" % ("yes" if self.options.webp else "no"),
-					"--with-wmf=%s" % ("yes" if self.options.wmf else "no"),
-					"--with-fontconfig=%s" % ("yes" if self.options.fontconfig else "no"),
-					"--with-freetype=%s" % ("yes" if self.options.freetype else "no"),
-					"--with-openjp2=%s" % ("yes" if self.options.openjp2 else "no"),
-					"--with-dmalloc=%s" % ("yes" if self.options.dmalloc else "no"),
-					"--with-jemalloc=%s" % ("yes" if self.options.jemalloc else "no"),
-					"--with-umem=%s" % ("yes" if self.options.umem else "no"),
-					"--with-autotrace=%s" % ("yes" if self.options.autotrace else "no"),
-					"--with-gslib=%s" % ("yes" if self.options.gslib else "no"),
-					"--with-gvc=%s" % ("yes" if self.options.gvc else "no"),
-					"--with-rsvg=%s" % ("yes" if self.options.rsvg else "no"),
-					"--with-wmf=%s" % ("yes" if self.options.wmf else "no"),
-					"--with-jpeg=%s" % ("yes" if self.options.jpeg else "no"),
-					"--with-png=%s" % ("yes" if self.options.png else "no"),
-					"--with-xml=%s" % ("yes" if self.options.xml else "no"),
-					"--with-zlib=%s" % ("yes" if self.options.zlib else "no"),
-					"--with-lzma=%s" % ("yes" if self.options.lzma else "no"),
-					"--with-tiff=%s" % ("yes" if self.options.tiff else "no")
-				]
-				
-				autotools = AutoToolsBuildEnvironment(self)
-				autotools.configure(configure_dir=os.path.join(self.build_folder, self.source_subfolder), args=args)
-				autotools.make()
-				autotools.install()
+			self.buildAutoTools()
 
 
 	def package(self):
