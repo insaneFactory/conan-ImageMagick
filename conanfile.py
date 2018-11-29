@@ -284,6 +284,7 @@ class ImageMagickConan(ConanFile):
 			self.copy("*Magick*.lib", dst="lib", keep_path=False)
 			self.copy("*Magick*.dll", dst="bin", keep_path=False)
 			self.copy("*Magick*.pdb", dst="bin", keep_path=False)
+			self.copy("*.xml", dst="etc/ImageMagick-7", src=os.path.join(self.source_subfolder, "config"))
 
 
 	def package_info(self):
