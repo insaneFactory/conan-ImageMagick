@@ -294,7 +294,11 @@ class ImageMagickConan(ConanFile):
 			"MagickWand-7.Q%s" % quantumDepth,
 			"Magick++-7.Q%s" % quantumDepth
 		]
+		
 		self.cpp_info.includedirs = [
 			"include",
 			"include/ImageMagick-7"
 		]
+		
+		if self.settings.os == "Linux":
+			self.cpp_info.libs.append("dl")
