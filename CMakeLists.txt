@@ -160,7 +160,7 @@ conan_basic_setup(TARGETS)
 #
 add_compile_definitions(
 	_MAGICKLIB_
-	_MAGICKMOD_
+	#_MAGICKMOD_
 )
 
 if(shared)
@@ -176,8 +176,122 @@ endif(shared)
 file(GLOB_RECURSE core_headers MagickCore/*.h)
 file(GLOB_RECURSE core_sources MagickCore/*.c)
 
-set(core_coders "")
+set(core_filters filters/analyze.c)
+
 set(core_targets "")
+set(core_coders
+	coders/aai.c
+	coders/art.c
+	coders/avs.c
+	coders/bgr.c
+	coders/bmp.c
+	coders/braille.c
+	coders/cals.c
+	coders/caption.c
+	coders/cin.c
+	coders/cip.c
+	coders/clip.c
+	coders/clipboard.c
+	coders/cmyk.c
+	coders/cmyk.c
+	coders/cut.c
+	coders/dcm.c
+	coders/dds.c
+	coders/debug.c
+	coders/dib.c
+	coders/dng.c
+	coders/dpx.c
+	coders/fax.c
+	coders/fd.c
+	coders/fits.c
+	coders/gif.c
+	coders/gray.c
+	coders/gradient.c
+	coders/hald.c
+	coders/hdr.c
+	coders/histogram.c
+	coders/hrz.c
+	coders/html.c
+	coders/icon.c
+	coders/info.c
+	coders/inline.c
+	coders/ipl.c
+	coders/jnx.c
+	coders/json.c
+	coders/label.c
+	coders/mac.c
+	coders/magick.c
+	coders/map.c
+	coders/mat.c
+	coders/matte.c
+	coders/mask.c
+	coders/meta.c
+	coders/miff.c
+	coders/mono.c
+	coders/mpc.c
+	coders/mpeg.c
+	coders/mpr.c
+	coders/msl.c
+	coders/mtv.c
+	coders/mvg.c
+	coders/null.c
+	coders/otb.c
+	coders/palm.c
+	coders/pango.c
+	coders/pattern.c
+	coders/pcd.c
+	coders/pcl.c
+	coders/pcx.c
+	coders/pdb.c
+	coders/pdf.c
+	coders/pes.c
+	coders/pgx.c
+	coders/pict.c
+	coders/pix.c
+	coders/plasma.c
+	coders/pnm.c
+	coders/ps.c
+	coders/ps2.c
+	coders/ps3.c
+	coders/psd.c
+	coders/pwp.c
+	coders/raw.c
+	coders/rgb.c
+	coders/rgf.c
+	coders/rla.c
+	coders/rle.c
+	coders/scr.c
+	coders/screenshot.c
+	coders/sct.c
+	coders/sfw.c
+	coders/sgi.c
+	coders/sixel.c
+	coders/stegano.c
+	coders/sun.c
+	coders/svg.c
+	coders/tga.c
+	coders/thumbnail.c
+	coders/tile.c
+	coders/tim.c
+	coders/ttf.c
+	coders/txt.c
+	coders/uil.c
+	coders/url.c
+	coders/uyvy.c
+	coders/vicar.c
+	coders/vid.c
+	coders/viff.c
+	coders/vips.c
+	coders/wbmp.c
+	coders/wpg.c
+	coders/xbm.c
+	coders/xc.c
+	coders/xcf.c
+	coders/xpm.c
+	coders/xps.c
+	coders/ycbcr.c
+	coders/yuv.c
+)
 
 if(bzlib OR WIN32)
 	list(APPEND core_targets PRIVATE CONAN_PKG::bzip2)
@@ -231,16 +345,26 @@ if(tiff)
 	list(APPEND core_coders coders/tiff.c)
 endif(tiff)
 
+if(WIN32)
+	list(APPEND core_coders coders/emf.c)
+	set_source_files_properties(coders/emf.c PROPERTIES LANGUAGE CXX)
+endif(WIN32)
+
+if(WIN32)
+	list(APPEND core_coders coders/xtrn.c)
+endif(WIN32)
+
 
 source_group(
 	TREE ${CMAKE_CURRENT_SOURCE_DIR}
 	PREFIX core_src
-	FILES ${core_headers} ${core_sources} ${core_coders}
+	FILES ${core_headers} ${core_sources} ${core_filters} ${core_coders}
 )
 
 add_library(MagickCore ${sharedOrStatic}
 	${core_headers}
 	${core_sources}
+	${core_filters}
 	${core_coders}
 )
 set_target_properties(MagickCore PROPERTIES OUTPUT_NAME "MagickCore-7.Q${quantumDepth}")
