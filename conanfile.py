@@ -118,6 +118,7 @@ class ImageMagickConan(ConanFile):
 			self.options.freetype = True
 			self.options.zlib = True
 			
+			del self.options.fPIC
 			del self.options.dmalloc
 			del self.options.jemalloc
 			del self.options.umem
