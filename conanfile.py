@@ -14,6 +14,7 @@ class ImageMagickConan(ConanFile):
 	source_subfolder = "src"
 	options = {
 		"shared": [True, False],
+		"fPIC": [True, False],
 		"quantum-depth": [8, 16, 32],
 		"openmp": [True, False],
 		"opencl": [True, False],
@@ -61,6 +62,7 @@ class ImageMagickConan(ConanFile):
 	}
 	default_options = {
 		"shared": True,
+		"fPIC": True,
 		"quantum-depth": 16,
 		"openmp": True,
 		"opencl": True,
@@ -294,11 +296,8 @@ class ImageMagickConan(ConanFile):
 			"MagickWand-7.Q%s" % quantumDepth,
 			"Magick++-7.Q%s" % quantumDepth
 		]
-		
 		self.cpp_info.includedirs = [
 			"include",
 			"include/ImageMagick-7"
 		]
 		
-		if self.settings.os == "Linux":
-			self.cpp_info.libs.append("dl")
