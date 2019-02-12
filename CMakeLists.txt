@@ -337,6 +337,10 @@ if(lzma)
 endif(lzma)
 
 if(tiff)
+	list(APPEND core_coders coders/ept.c)
+endif(tiff)
+
+if(tiff)
 	list(APPEND core_coders coders/psd.c)
 endif(tiff)
 
