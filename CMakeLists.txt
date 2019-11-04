@@ -5,8 +5,6 @@ project(ImageMagick)
 # OPTIONS
 #
 
-option(shared "ON, OFF" ON)
-#option(quantumDepth "8, 16, 32" 16)
 option(openmp "ON, OFF" ON)
 option(opencl "ON, OFF" ON)
 option(largefile "ON, OFF" ON)
@@ -46,11 +44,6 @@ option(zlib "ON, OFF" ON)
 option(lzma "ON, OFF" ON)
 option(tiff "ON, OFF" ON)
 
-set(sharedOrStatic "STATIC")
-if(shared)
-	set(sharedOrStatic "SHARED")
-endif(shared)
-
 if(NOT DEFINED quantumDepth)
 	set(quantumDepth 16)
 endif(NOT DEFINED quantumDepth)
@@ -58,6 +51,10 @@ endif(NOT DEFINED quantumDepth)
 #
 # Configure config.
 #
+
+if(WIN32)
+	add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
+endif(WIN32)
 
 if(opencl)
 	set(MAGICKCORE__OPENCL "")
@@ -139,10 +136,10 @@ configure_file(magick-baseconfig.h.in ${CMAKE_CURRENT_SOURCE_DIR}/MagickCore/mag
 #
 
 set(PACKAGE_NAME "ImageMagick")
-set(PACKAGE_LIB_VERSION "0x707")
-set(MAGICK_LIB_VERSION_TEXT "7.0.7")
-set(MAGICK_LIB_VERSION_NUMBER "7,0,7,22")
-set(PACKAGE_VERSION_ADDENDUM "-22")
+set(PACKAGE_LIB_VERSION "0x709")
+set(MAGICK_LIB_VERSION_TEXT "7.0.9")
+set(MAGICK_LIB_VERSION_NUMBER "7,0,9,2")
+set(PACKAGE_VERSION_ADDENDUM "-2")
 set(MAGICK_LIBRARY_CURRENT "5")
 set(MAGICK_LIBRARY_CURRENT_MIN "0")
 set(PACKAGE_RELEASE_DATE "")
@@ -163,11 +160,11 @@ add_compile_definitions(
 	#_MAGICKMOD_
 )
 
-if(shared)
+if(BUILD_SHARED_LIBS)
 	add_compile_definitions(_DLL)
 else()
 	add_compile_definitions(_LIB)
-endif(shared)
+endif(BUILD_SHARED_LIBS)
 
 #
 # MagickCore
@@ -194,6 +191,7 @@ set(core_coders
 	coders/clipboard.c
 	coders/cmyk.c
 	coders/cmyk.c
+	coders/cube.c
 	coders/cut.c
 	coders/dcm.c
 	coders/dds.c
@@ -202,7 +200,6 @@ set(core_coders
 	coders/dng.c
 	coders/dpx.c
 	coders/fax.c
-	coders/fd.c
 	coders/fits.c
 	coders/gif.c
 	coders/gray.c
@@ -273,6 +270,7 @@ set(core_coders
 	coders/thumbnail.c
 	coders/tile.c
 	coders/tim.c
+	coders/tim2.c
 	coders/ttf.c
 	coders/txt.c
 	coders/uil.c
@@ -306,7 +304,7 @@ if(lcms OR WIN32)
 endif(lcms OR WIN32)
 
 if(zlib OR png OR tiff OR WIN32)
-	list(APPEND core_targets PRIVATE CONAN_PKG::zlib)
+	list(APPEND core_targets PRIVATE CONAN_PKG::ZLIB)
 endif(bzlib OR WIN32)
 
 if(lqr OR WIN32)
@@ -326,6 +324,11 @@ endif(jpeg)
 if(png)
 	list(APPEND core_targets PRIVATE CONAN_PKG::libpng)
 	list(APPEND core_coders coders/png.c)
+	set_property(SOURCE coders/png.c PROPERTY INCLUDE_DIRECTORIES		
+		${CONAN_INCLUDE_DIRS_LIBPNG}
+		${CMAKE_CURRENT_SOURCE_DIR}/MagickCore
+		${CMAKE_CURRENT_SOURCE_DIR}
+	)
 endif(png)
 
 if(xml)
@@ -345,7 +348,7 @@ if(tiff)
 endif(tiff)
 
 if(tiff)
-	list(APPEND core_targets PRIVATE CONAN_PKG::libtiff)
+	list(APPEND core_targets PRIVATE CONAN_PKG::TIFF)
 	list(APPEND core_coders coders/tiff.c)
 endif(tiff)
 
@@ -365,7 +368,7 @@ source_group(
 	FILES ${core_headers} ${core_sources} ${core_filters} ${core_coders}
 )
 
-add_library(MagickCore ${sharedOrStatic}
+add_library(MagickCore
 	${core_headers}
 	${core_sources}
 	${core_filters}
@@ -396,7 +399,7 @@ source_group(
 	FILES ${wand_headers} ${wand_sources}
 )
 
-add_library(MagickWand ${sharedOrStatic}
+add_library(MagickWand
 	${wand_headers}
 	${wand_sources}
 )
@@ -423,7 +426,7 @@ source_group(
 	FILES ${plusplus_headers} ${plusplus_sources}
 )
 
-add_library(MagickPlusPlus ${sharedOrStatic}
+add_library(MagickPlusPlus
 	${plusplus_headers}
 	${plusplus_sources}
 )

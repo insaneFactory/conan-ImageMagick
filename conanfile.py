@@ -3,15 +3,13 @@ import shutil, os
 
 class ImageMagickConan(ConanFile):
 	name = "ImageMagick"
-	version = "7.0.7-22"
+	version = "7.0.9-2"
 	license = "ImageMagick License"
 	url = "https://github.com/insaneFactory/conan-imagemagick"
 	description = "ImageMagick® is a software suite to create, edit, compose, or convert bitmap images. It can read and write images in a variety of formats (over 200) including PNG, JPEG, GIF, HEIC, TIFF, DPX, EXR, WebP, Postscript, PDF, and SVG. Use ImageMagick to resize, flip, mirror, rotate, distort, shear and transform images, adjust image colors, apply various special effects, or draw text, lines, polygons, ellipses and Bézier curves."
-	requires = ()
 	settings = "os", "compiler", "build_type", "arch"
 	exports_sources = "CMakeLists.txt", "magick-baseconfig.h.in"
 	generators = "cmake", "pkg_config"
-	source_subfolder = "src"
 	options = {
 		"shared": [True, False],
 		"fPIC": [True, False],
@@ -107,6 +105,7 @@ class ImageMagickConan(ConanFile):
 		"lzma": True,
 		"tiff": True
 	}
+	_source_subfolder = "source_subfolder"
 	
 	
 	def configure(self):
@@ -127,42 +126,43 @@ class ImageMagickConan(ConanFile):
 
 	def build_requirements(self):
 		if self.settings.os == "Windows":
-			self.build_requires("cmake_installer/3.12.1@conan/stable")
+			self.build_requires("cmake_installer/3.15.5@conan/stable")
 
 
 	def requirements(self):
 		if self.settings.os == "Windows" or self.options.bzlib:
-			self.requires("bzip2/1.0.6@conan/stable")
+			self.requires("bzip2/1.0.8")
 		if self.settings.os == "Windows": # or self.options.glib:
-			self.requires("glib/2.58.1@insanefactory/stable")
+			self.requires("glib/2.58.3@bincrafters/stable")
 		if self.settings.os == "Windows" or self.options.lcms:
-			self.requires("lcms/2.9@bincrafters/stable")
+			self.requires("lcms/2.9")
 		if self.settings.os == "Windows" or self.options.lqr:
 			self.requires("lqr/0.4.2@insanefactory/stable")
 		if self.settings.os == "Windows" or self.options.freetype:
-			self.requires("freetype/2.9.0@bincrafters/stable")
+			self.requires("freetype/2.10.1")
 		if self.settings.os == "Windows" or self.options.zlib:
-			self.requires("zlib/1.2.11@conan/stable")
+			self.requires("zlib/1.2.11")
 			
 		if self.options.jpeg:
 			self.requires("libjpeg-turbo/1.5.2@bincrafters/stable")
 		if self.options.png:
-			self.requires("libpng/1.6.34@bincrafters/stable")
+			self.requires("libpng/1.6.37")
 		if self.options.xml:
-			self.requires("libxml2/2.9.8@bincrafters/stable")
+			self.requires("libxml2/2.9.9")
 		if self.options.lzma:
 			self.requires("lzma/5.2.4@bincrafters/stable")
 		if self.options.tiff:
-			self.requires("libtiff/4.0.9@bincrafters/stable")
+			self.requires("libtiff/4.0.9")
 
 
 	def source(self):
-		self.run("git clone https://github.com/ImageMagick/ImageMagick.git " + self.source_subfolder)
-		self.run("cd %s && git fetch --all --tags --prune && git checkout tags/%s" % (self.source_subfolder, self.version))
-
+		archive = "ImageMagick-%s" % self.version
+		tools.get("https://imagemagick.org/download/%s.tar.xz" % archive)
+		os.rename(archive, self._source_subfolder)
+	
 		if self.settings.os == "Windows":
-			shutil.move("CMakeLists.txt", self.source_subfolder + "/CMakeLists.txt")
-			shutil.move("magick-baseconfig.h.in", self.source_subfolder + "/magick-baseconfig.h.in")
+			shutil.move("CMakeLists.txt", self._source_subfolder + "/CMakeLists.txt")
+			shutil.move("magick-baseconfig.h.in", self._source_subfolder + "/magick-baseconfig.h.in")
 
 	
 	def buildCMake(self):
@@ -207,7 +207,7 @@ class ImageMagickConan(ConanFile):
 		cmake.definitions["zlib"] = self.options.zlib
 		cmake.definitions["lzma"] = self.options.lzma
 		cmake.definitions["tiff"] = self.options.tiff
-		cmake.configure(source_folder=self.source_subfolder)
+		cmake.configure(source_folder=self._source_subfolder)
 		cmake.build()
 		
 		
@@ -264,7 +264,7 @@ class ImageMagickConan(ConanFile):
 			
 			autotools = AutoToolsBuildEnvironment(self)
 			autotools.configure(
-				configure_dir=os.path.join(self.build_folder, self.source_subfolder),
+				configure_dir=os.path.join(self.build_folder, self._source_subfolder),
 				args=args
 				#pkg_config_paths=self.build_folder
 			)
@@ -281,13 +281,13 @@ class ImageMagickConan(ConanFile):
 
 	def package(self):
 		if self.settings.os == "Windows":
-			self.copy("*.h", dst="include/ImageMagick-7/MagickCore", src=os.path.join(self.source_subfolder, "MagickCore"))
-			self.copy("*.h", dst="include/ImageMagick-7/MagickWand", src=os.path.join(self.source_subfolder, "MagickWand"))
-			self.copy("*.h", dst="include/ImageMagick-7", src=os.path.join(self.source_subfolder, "Magick++", "lib"))
+			self.copy("*.h", dst="include/ImageMagick-7/MagickCore", src=os.path.join(self._source_subfolder, "MagickCore"))
+			self.copy("*.h", dst="include/ImageMagick-7/MagickWand", src=os.path.join(self._source_subfolder, "MagickWand"))
+			self.copy("*.h", dst="include/ImageMagick-7", src=os.path.join(self._source_subfolder, "Magick++", "lib"))
 			self.copy("*Magick*.lib", dst="lib", keep_path=False)
 			self.copy("*Magick*.dll", dst="bin", keep_path=False)
 			self.copy("*Magick*.pdb", dst="bin", keep_path=False)
-			self.copy("*.xml", dst="etc/ImageMagick-7", src=os.path.join(self.source_subfolder, "config"))
+			self.copy("*.xml", dst="etc/ImageMagick-7", src=os.path.join(self._source_subfolder, "config"))
 
 
 	def package_info(self):
