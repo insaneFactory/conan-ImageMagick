@@ -336,7 +336,7 @@ if(xml)
 endif(xml)
 
 if(lzma)
-	list(APPEND core_targets PRIVATE CONAN_PKG::lzma)
+	list(APPEND core_targets PRIVATE CONAN_PKG::xz_utils)
 endif(lzma)
 
 if(tiff)

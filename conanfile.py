@@ -3,7 +3,7 @@ import shutil, os
 
 class ImageMagickConan(ConanFile):
 	name = "ImageMagick"
-	version = "7.0.9-2"
+	version = "7.0.9-3"
 	license = "ImageMagick License"
 	url = "https://github.com/insaneFactory/conan-imagemagick"
 	description = "ImageMagick® is a software suite to create, edit, compose, or convert bitmap images. It can read and write images in a variety of formats (over 200) including PNG, JPEG, GIF, HEIC, TIFF, DPX, EXR, WebP, Postscript, PDF, and SVG. Use ImageMagick to resize, flip, mirror, rotate, distort, shear and transform images, adjust image colors, apply various special effects, or draw text, lines, polygons, ellipses and Bézier curves."
@@ -144,13 +144,13 @@ class ImageMagickConan(ConanFile):
 			self.requires("zlib/1.2.11")
 			
 		if self.options.jpeg:
-			self.requires("libjpeg-turbo/1.5.2@bincrafters/stable")
+			self.requires("libjpeg-turbo/1.5.2")
 		if self.options.png:
 			self.requires("libpng/1.6.37")
 		if self.options.xml:
 			self.requires("libxml2/2.9.9")
 		if self.options.lzma:
-			self.requires("lzma/5.2.4@bincrafters/stable")
+			self.requires("xz_utils/5.2.4")
 		if self.options.tiff:
 			self.requires("libtiff/4.0.9")
 
@@ -205,12 +205,12 @@ class ImageMagickConan(ConanFile):
 		cmake.definitions["png"] = self.options.png
 		cmake.definitions["xml"] = self.options.xml
 		cmake.definitions["zlib"] = self.options.zlib
-		cmake.definitions["lzma"] = self.options.lzma
+		cmake.definitions["lzma"] = self.options.xz_utils
 		cmake.definitions["tiff"] = self.options.tiff
 		cmake.configure(source_folder=self._source_subfolder)
 		cmake.build()
-		
-		
+
+
 	def buildAutoTools(self):
 		tools.mkdir("build")
 		with tools.chdir("build"):
