@@ -3,7 +3,7 @@ import shutil, os
 
 class ImageMagickConan(ConanFile):
 	name = "ImageMagick"
-	version = "7.0.9-3"
+	version = "7.0.9-5"
 	license = "ImageMagick License"
 	url = "https://github.com/insaneFactory/conan-imagemagick"
 	description = "ImageMagick® is a software suite to create, edit, compose, or convert bitmap images. It can read and write images in a variety of formats (over 200) including PNG, JPEG, GIF, HEIC, TIFF, DPX, EXR, WebP, Postscript, PDF, and SVG. Use ImageMagick to resize, flip, mirror, rotate, distort, shear and transform images, adjust image colors, apply various special effects, or draw text, lines, polygons, ellipses and Bézier curves."
@@ -205,7 +205,7 @@ class ImageMagickConan(ConanFile):
 		cmake.definitions["png"] = self.options.png
 		cmake.definitions["xml"] = self.options.xml
 		cmake.definitions["zlib"] = self.options.zlib
-		cmake.definitions["lzma"] = self.options.xz_utils
+		cmake.definitions["lzma"] = self.options.lzma
 		cmake.definitions["tiff"] = self.options.tiff
 		cmake.configure(source_folder=self._source_subfolder)
 		cmake.build()
