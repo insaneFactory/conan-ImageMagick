@@ -157,7 +157,7 @@ class ImageMagickConan(ConanFile):
 
 	def source(self):
 		archive = "ImageMagick-%s" % self.version
-		tools.get("https://imagemagick.org/download/%s.tar.xz" % archive)
+		tools.get("https://imagemagick.org/download/releases/%s.tar.xz" % archive)
 		os.rename(archive, self._source_subfolder)
 	
 		if self.settings.os == "Windows":
